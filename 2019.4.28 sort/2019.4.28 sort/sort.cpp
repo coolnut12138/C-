@@ -133,6 +133,9 @@ void HeapSort(int arr[], int size)
 }
 
 //快排
+//时间复杂度：Partition的时间复杂度是 O(n),
+//			 快排的时间复杂度是O(n*二叉树高度)，二叉树高度最低是logn，最高是n，
+//			 所以快排的时间复杂度最好是O(n*logn),最坏是O(n^2)
 //hover
 int Partition_1(int arr[], int left, int right)
 {
@@ -202,8 +205,87 @@ void _QuickSort(int arr[], int left, int right)
 void QuickSort(int arr[], int size)
 {
 	_QuickSort(arr, 0, size - 1);
+}	
+
+#include <stack>
+//快排非递归(循环+栈实现)
+void QuickSortNor(int arr[], int size)
+{
+	stack<int> st;
+	//将整个区间的右左压入栈，先压右边，再压左边，这样取的时候就先取的是左边，先排序的就是左边
+	st.push(size - 1);
+	st.push(0);
+	while (!st.empty()){
+		int left = st.top();
+		st.pop();
+		int right = st.top();
+		st.pop();
+		if (left >= right){
+			continue;	//left >= right代表区间内只有一个数或没有数了，就不用再排序了
+		}
+		else{
+			//经过划分，将区间从基准值位置划分为两个区间，比基准值大的和比基准值小的
+			int div = Partition_1(arr, left, right);
+			st.push(right);
+			st.push(div + 1);
+			st.push(div - 1);
+			st.push(left);
+		}
+	}
 }
 
+//归并排序(支持外部排序)
+void Merge(int arr[], int left, int mid, int right, int extra[])
+{
+	int size = right - left;
+	int left_index = left;
+	int right_index = mid;
+	int extra_index = 0;
+	while (left_index < mid && right_index < right){
+		if (arr[left_index] < arr[right_index]){
+			extra[extra_index] = arr[left_index];
+			left_index++;
+		}
+		else{
+			extra[extra_index] = arr[right_index];
+			right_index++;
+		}
+		extra_index++;
+	}
+	while (left_index < mid){
+		extra[extra_index++] = arr[left_index++];
+	}
+	while (right_index < right){
+		extra[extra_index++] = arr[right_index++];
+	}
+
+	for (int i = 0; i < size; i++){
+		arr[left + i] = extra[i];
+	}
+}
+
+void _MergeSort(int arr[], int left, int right, int extra[])
+{
+	if (left + 1 == right){
+		return;
+	}
+
+	if (left >= right){
+		return;
+	}
+
+	int mid = left + (right - left) / 2;
+	_MergeSort(arr, left, mid, extra);
+	_MergeSort(arr, mid, right, extra);
+	Merge(arr, left, mid, right, extra);
+}
+
+void MergeSort(int arr[], int size)
+{
+	int *extra = new int[size];
+	_MergeSort(arr, 0, size, extra);
+	delete[] extra;
+}
 int main()
 {
 	int arr[] = { 3, 6, 2, 63, 4, 8, 3, 7, 9, 7 };
@@ -214,7 +296,9 @@ int main()
 	//shellSort(arr, size);
 	//SelectSort(arr, size);
 	//HeapSort(arr, size);
-	QuickSort(arr, size);
+	//QuickSort(arr, size);
+	//QuickSortNor(arr, size);
+	MergeSort(arr, size);
 	for (int i = 0; i < size; ++i)
 	{
 		cout << arr[i] << " ";
