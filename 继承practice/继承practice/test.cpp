@@ -163,6 +163,7 @@ int main()
 }
 #endif
 
+#if 0
 class Person
 {
 public:
@@ -218,6 +219,8 @@ int main()
 	return 0;
 }
 
+#endif
+
 #if 0
 //构造私有
 class NonInherit
@@ -237,3 +240,79 @@ class NonInherit final
 class stu : public NonInherit
 {};
 #endif
+
+#if 0
+//菱形继承
+class Person
+{
+public:
+	string _name;
+};
+
+class Student : virtual public Person
+{
+protected:
+	int _num;
+};
+
+class Teacher : virtual public Person
+{
+protected:
+	int _id;
+};
+
+class Assistant : public Student, public Teacher
+{
+protected:
+	string _majorCourse;
+};
+
+void Test()
+{
+	Assistant a;
+	a._name = "mark";
+	a.Teacher::_name = "lzl";
+	a.Student::_name = "linda";
+}
+
+int main()
+{
+	Test();
+	system("pause");
+	return 0;
+}
+#endif
+
+class A
+{
+public:
+	int _a;
+};
+ //class B : public A
+class B : virtual public A
+{
+public:
+	int _b;
+};
+ //class C : public A
+class C : virtual public A
+{
+public:
+	int _c;
+};
+class D : public B, public C
+{
+public:
+	int _d;
+};
+
+int main()
+{
+	D d;
+	d.B::_a = 1;
+	d.C::_a = 2;
+	d._b = 3;
+	d._c = 4;
+	d._d = 5;
+	return 0;
+}
