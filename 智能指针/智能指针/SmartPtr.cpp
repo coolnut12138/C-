@@ -234,9 +234,9 @@ public:
 	Date(){ cout << "Date()" << endl; }
 	~Date() { cout << "~Date()" << endl; }
 
-	int _year;
-	int _month;
-	int _day;
+	int _year = 1990;
+	int _month = 1;
+	int _day = 1;
 };
 
 #if 0
@@ -283,6 +283,20 @@ int main()
 #endif
 
 #if 0
+#include <memory>
+//使用shared_ptr
+int main()
+{
+	shared_ptr<Date> sp(new Date);
+	shared_ptr<Date> copy(sp);
+	sp->_year = 10;
+	cout << sp.use_count() << endl;
+	cout << copy.use_count() << endl;	//连接同一份资源，两个指针的计数都加1
+	return 0;
+}
+#endif
+
+#if 1
 //模拟实现简单的SharedPtr
 #include <mutex>
 #include <thread>
@@ -290,6 +304,122 @@ int main()
 template <class T>
 class SharedPtr
 {
+public:
+	SharedPtr(T* ptr = nullptr)
+		:_ptr(ptr)
+		, _pMutex(new mutex)
+		, _pRefCount(new int(1))
+	{}
 
+	~SharedPtr()
+	{
+		if (subCount() == 0){
+			if (_ptr){
+				delete _ptr;
+				delete _pRefCount;
+				delete _pMutex;
+				_pMutex = nullptr;
+				_pRefCount = nullptr;
+				_ptr = nullptr;
+			}
+		}
+	}
+
+	SharedPtr(const SharedPtr<T>& sp)
+		:_ptr(sp._ptr)
+		, _pRefCount(sp._pRefCount)
+		, _pMutex(sp._pMutex)
+	{
+		AddRefCount();
+	}
+
+	SharedPtr<T>& operator=(const SharedPtr<T>& sp)
+	{
+		if (_ptr != sp._ptr){
+			//与原有资源断开连接
+			if (--(*_pRefCount) == 0){
+				delete _ptr;
+				delete _pRefCount;
+				delete _pMutex;
+				_pMutex = nullptr;
+				_pRefCount = nullptr;
+				_ptr = nullptr;
+			}
+
+			//建立新的连接
+			_ptr = sp._ptr;
+			_pRefCount = sp._pRefCount;
+			_pMutex = sp._pMutex;
+
+			//计数加一
+			AddRefCount();
+		}
+		return *this;
+	}
+
+	T& operator*()
+	{
+		return *_ptr;
+	}
+	T* operator->()
+	{
+		return _ptr;
+	}
+
+	int UseCount()
+	{
+		return *_pRefCount;
+	}
+
+	int subCount()
+	{
+		_pMutex->lock();
+		--(*_pRefCount);
+		_pMutex->unlock();
+		return *_pRefCount;
+	}
+
+	int AddRefCount()
+	{
+		_pMutex->lock();
+		++(*_pRefCount);
+		_pMutex->unlock();
+		return *_pRefCount;
+	}
+private:
+	T* _ptr;	//管理资源的指针
+	int* _pRefCount;	//引用计数
+	mutex* _pMutex;	//互斥锁
 };
+mutex mtx;
+void funC(SharedPtr<Date>& sp, int num)
+{
+	for (int i = 0; i < num; i++)
+	{
+		SharedPtr<Date> spcopy(sp);
+		mtx.lock();
+		sp->_year++;
+		mtx.unlock();
+	}
+
+}
+
+int main()
+{
+	SharedPtr<Date> sp(new Date);
+	SharedPtr<Date> sp2(new Date);
+	int num;
+	cin >> num;
+	thread t1(funC, sp, num);
+	thread t2(funC, sp, num);
+	t1.join();
+	t2.join();
+	cout << "year: " << sp->_year << endl;
+	//cout << sp.UseCount() << endl;
+	//cout << copy.UseCount() << endl;
+	system("pause");
+	return 0;
+}
 #endif
+
+
