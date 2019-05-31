@@ -214,10 +214,10 @@ public:
 			//Ìæ»»
 			cur->_data = leftMax->_data;
 			if (parent->_left == leftMax){
-				parent->_left = nullptr;
+				parent->_left = leftMax->_left;
 			}
 			else{
-				parent->_right = nullptr;
+				parent->_right = leftMax->_left;
 			}
 			//É¾³ý½áµã
 			delete leftMax;
@@ -247,31 +247,27 @@ private:
 int main()
 {
 	BSTree<int> bst;
-	bst.Insert(0);
 	bst.Insert(10);
 	bst.Insert(9);
 	bst.Insert(4);
+	bst.Insert(8);
 	bst.Insert(2);
 	bst.Insert(19);
 	bst.Insert(31);
-	bst.Insert(7);
-	bst.Insert(8);
-	bst.Insert(90);
-	bst.Insert(-1);
-	bst.Insert(6);
+
 	bst.Inorder();
-	bst.Erase(6);
+	bst.Erase(10);
+	bst.Inorder();
+	/*bst.Erase(6);
 	bst.Inorder();
 	bst.Erase(7);
-	bst.Inorder();
-	bst.Erase(0);
 	bst.Inorder();
 	BSTree<int> bst2(bst);
 	bst2.Inorder();
 	BSTree<int> bst3;
 	bst3 = bst2;
-	bst3.Inorder();
+	bst3.Inorder();*/
 	return 0;
-}
+ }
 #endif
 
